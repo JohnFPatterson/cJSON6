@@ -11,7 +11,9 @@ used by the differential harness.
 | `cjson-core/` | All parse / print / tree logic. `#![forbid(unsafe_code)]` in `src/lib.rs`. |
 | `cjson-ffi/` | Thin C ABI (`cJSON_*` symbols, `#[repr(C)]` `cJSON` struct) so existing C callers can link unchanged. **Only** crate allowed to contain `unsafe`. |
 | `cjson-core/tests/unity.rs` | Port of the Unity tests under `tests/*.c` (cJSON core, not Utils). |
-| `cjson-core/tests/parity.rs` | Differential harness over `tests/inputs/`. Writes `PARITY.md`. |
+| `cjson-core/tests/parity.rs` | Differential harness over `tests/inputs/` (invokes the `parity` binary). |
+| `cjson-core/src/bin/parity.rs` | Comparison engine: parse / error pos / compact / pretty. Writes `PARITY.md`. |
+| `parity.sh` / `make parity` | Projector demo: build C + Rust, run Unity on both, compare `tests/inputs/`. |
 | `tools/cjson_oracle.c` | Original-C oracle (`cJSON_Parse` + both print modes). |
 
 Rust callers should depend on `cjson-core` (`Value`, `parse`, `print`, …).
