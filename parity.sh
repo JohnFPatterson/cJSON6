@@ -112,6 +112,12 @@ for suite in "${UNITY_SUITES[@]}"; do
     fi
 done
 
+# A crash/abort leaves no Unity summary; treat that as a failure, matching
+# the Rust cargo-test guard below.
+if [[ "$c_suites_ok" -ne "$c_suites_total" && "$c_fail" -eq 0 ]]; then
+    c_fail=1
+fi
+
 R_UNITY_LOG="$ROOT/target/parity-unity-rust.log"
 set +e
 cargo test -p cjson-core --test unity -- --test-threads=1 >"$R_UNITY_LOG" 2>&1
