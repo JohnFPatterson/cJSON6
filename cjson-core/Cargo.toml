@@ -9,5 +9,6 @@ description = "Safe Rust port of the cJSON parser (logic crate; no unsafe code).
 name = "cjson_core"
 path = "src/lib.rs"
 
-[dev-dependencies]
-# none; parity harness shells out to gcc
+[[bin]]
+name = "parity"
+path = "src/bin/parity.rs"

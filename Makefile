@@ -66,7 +66,7 @@ UTILS_STATIC = $(UTILS_LIBNAME).$(STATIC)
 
 SHARED_CMD = $(CC) -shared -o
 
-.PHONY: all shared static tests clean install
+.PHONY: all shared static tests clean install parity
 
 all: shared static tests
 
@@ -78,6 +78,11 @@ tests: $(CJSON_TEST)
 
 test: tests
 	./$(CJSON_TEST)
+
+# Differential demo: original C cJSON vs the Rust port (tests/inputs + Unity).
+# Prints a short color summary and writes PARITY.md. Exit nonzero on divergence.
+parity:
+	@bash ./parity.sh
 
 .c.o:
 	$(CC) -c $(R_CFLAGS) $<
