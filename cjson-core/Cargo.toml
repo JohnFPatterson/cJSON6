@@ -1,0 +1,13 @@
+[package]
+name = "cjson-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Safe Rust port of the cJSON parser (logic crate; no unsafe code)."
+
+[lib]
+name = "cjson_core"
+path = "src/lib.rs"
+
+[dev-dependencies]
+# none; parity harness shells out to gcc
