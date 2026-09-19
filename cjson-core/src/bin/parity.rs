@@ -549,7 +549,7 @@ fn fmt_unity(u: &UnityStats) -> (String, bool) {
         _ => String::new(),
     };
     (
-        format!("{suites}{} pass  {} fail", u.passed, u.failed),
+        format!("{suites}{:>3} pass  {} fail", u.passed, u.failed),
         ok,
     )
 }
@@ -605,20 +605,21 @@ fn print_demo(
         color.dim("tests/inputs/   parse · error pos · compact · pretty")
     );
     println!(
-        "  {:<16} {:<14} {:<14} {}",
-        color.bold("FILE"),
-        color.bold("C"),
-        color.bold("RUST"),
+        "  {} {} {} {}",
+        color.bold(&format!("{:<16}", "FILE")),
+        color.bold(&format!("{:<14}", "C")),
+        color.bold(&format!("{:<14}", "RUST")),
         color.bold("RESULT")
     );
 
     let mismatches: Vec<&FileReport> = reports.iter().filter(|r| !r.identical).collect();
     let passed = identical;
     if passed > 0 {
+        let collapsed = format!("×{passed}");
         println!(
             "  {}",
             color.green(&format!(
-                "×{passed:<15} {:<14} {:<14} MATCH",
+                "{collapsed:<16} {:<14} {:<14} MATCH",
                 "identical", "identical"
             ))
         );

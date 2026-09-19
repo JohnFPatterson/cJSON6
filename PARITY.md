@@ -20,7 +20,9 @@ Produced by `make parity` (or `./parity.sh`).
 | Implementation | Passed | Failed | Suites |
 |----------------|--------|--------|--------|
 | C (`tests/*.c` + `cJSON.c`) | 153 | 0 | 18/18 |
-| Rust (`cjson-core/tests/unity.rs`) | 68 | 0 | — |
+| Rust (`cjson-core/tests/unity.rs`) | 68 | 0 | 18/18 |
+
+C Unity counts each `TEST` function (153 across 18 files). The Rust port covers the same 18 suites in 68 `#[test]` functions; some C cases were grouped. A failure in either implementation is a parity failure.
 
 ## Per-file results
 

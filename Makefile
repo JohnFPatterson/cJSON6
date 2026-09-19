@@ -82,7 +82,7 @@ test: tests
 # Differential demo: original C cJSON vs the Rust port (tests/inputs + Unity).
 # Prints a short color summary and writes PARITY.md. Exit nonzero on divergence.
 parity:
-	bash ./parity.sh
+	@bash ./parity.sh
 
 .c.o:
 	$(CC) -c $(R_CFLAGS) $<
