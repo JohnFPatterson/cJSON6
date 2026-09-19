@@ -206,7 +206,8 @@ static unsigned char* cJSON_strdup(const unsigned char* string, const internal_h
     {
         return NULL;
     }
-    memcpy(copy, string, length+1);
+    /* length already includes the terminating null from sizeof("") */
+    memcpy(copy, string, length);
 
     return copy;
 }

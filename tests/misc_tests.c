@@ -783,6 +783,53 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     cJSON_Delete(sobj);
 }
 
+#define CJSON_STRDUP_CANARY ((unsigned char)0xA5)
+
+static unsigned char *strdup_canary_block = NULL;
+static size_t strdup_canary_size = 0;
+
+static void * CJSON_CDECL strdup_canary_malloc(size_t size)
+{
+    unsigned char *block = (unsigned char*)malloc(size + 1);
+    if (block == NULL)
+    {
+        return NULL;
+    }
+
+    block[size] = CJSON_STRDUP_CANARY;
+    strdup_canary_block = block;
+    strdup_canary_size = size;
+
+    return block;
+}
+
+static void CJSON_CDECL strdup_canary_free(void *pointer)
+{
+    free(pointer);
+}
+
+/* cJSON_strdup must copy exactly the allocated length (string + terminator).
+ * Copying length+1 overreads the source and writes one byte past the heap block. */
+static void cjson_strdup_should_not_write_past_allocation(void)
+{
+    const unsigned char *source = (const unsigned char*)"strdup-overflow-canary";
+    internal_hooks canary_hooks = { strdup_canary_malloc, strdup_canary_free, NULL };
+    unsigned char *copy = NULL;
+
+    copy = cJSON_strdup(source, &canary_hooks);
+
+    TEST_ASSERT_NOT_NULL(copy);
+    TEST_ASSERT_NOT_NULL(strdup_canary_block);
+    TEST_ASSERT_EQUAL_STRING((const char*)source, (const char*)copy);
+    TEST_ASSERT_EQUAL_UINT(strlen((const char*)source) + 1, (unsigned)strdup_canary_size);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(CJSON_STRDUP_CANARY, strdup_canary_block[strdup_canary_size],
+        "cJSON_strdup wrote past the allocated buffer");
+
+    strdup_canary_free(copy);
+    strdup_canary_block = NULL;
+    strdup_canary_size = 0;
+}
+
 static void cjson_parse_big_numbers_should_not_report_error(void)
 {
     cJSON *valid_big_number_json_object1 = cJSON_Parse("{\"a\": true, \"b\": [ null,9999999999999999999999999999999999999999999999912345678901234567]}");
@@ -832,6 +879,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
+    RUN_TEST(cjson_strdup_should_not_write_past_allocation);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
 
     return UNITY_END();
