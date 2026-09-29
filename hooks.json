@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "python3 .cursor/hooks/scan_prompt.py",
+        "timeout": 10,
+        "failClosed": true
+      }
+    ]
+  }
+}
