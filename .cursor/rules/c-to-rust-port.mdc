@@ -1,6 +1,6 @@
 ---
-description: C-to-Rust library port in progress — safe core crate, thin C ABI shim, match C quirks, prove with a C oracle.
-globs: "**/*.{rs,toml,c,h}"
+description: C-to-Rust library port in progress — safe core crate, thin C ABI shim, match C quirks except SonarQube security findings, prove with a C oracle.
+globs: "**/*.{rs,toml,c,h,md}"
 alwaysApply: false
 ---
 
@@ -14,12 +14,15 @@ Full playbook: `.cursor/skills/port-c-library-to-rust/SKILL.md`.
 
 - Cargo workspace: `{lib}-core` holds all logic with `#![forbid(unsafe_code)]`. `{lib}-ffi` is a thin C ABI shim (`#[repr(C)]`, original header symbols, `staticlib` + `cdylib`).
 - `{lib}-ffi` is the **only** crate that may contain `unsafe`. Every `unsafe` block has a `SAFETY:` comment.
-- Keep original `*.c` / `*.h` in-tree as the behavioral spec and oracle. Do not delete them once Rust compiles.
-- Match C **including quirks**. Do not "fix" lookup case folding, duplicate keys, print formatting, NaN/Inf, nesting limits, or error offsets.
+- Keep original `*.c` / `*.h` in-tree as the behavioral spec and oracle. Do not delete them once Rust compiles. Do not patch C to satisfy SonarQube.
+- Match C **including quirks**, except SonarQube SECURITY issues and Security Hotspots, which may be fixed in Rust.
+- Scan each library C module (product `*.c`, not tests/fuzzers) via SonarQube MCP. Discover the `Sonarqube` namespace with `GetDynamicTools`; authenticate if `needsAuth`. If MCP is missing or auth fails, **stop** — do not invent findings or skip the scan.
+- Prefer `search_sonar_issues_in_projects` (`impactSoftwareQualities: ["SECURITY"]`) and `search_security_hotspots` (per file, `TO_REVIEW`). Else `analyze_file_list`. Do not rely on `analyze_code_snippet` for C/C++.
 - Malformed input returns `Result` / `Error`. Library code must not panic on untrusted data.
 - Port the original test suite (Unity or equivalent). Same cases, not a replacement suite.
-- Differential harness vs original C: parse success/failure, exact error position on failure, byte-identical compact **and** pretty print. Exit nonzero on divergence.
+- Differential harness vs original C: parse success/failure, exact error position on failure, byte-identical compact **and** pretty print. Exit nonzero on **unlisted** divergence.
 - `PARITY.md`: per-input table, documented quirks with **C source lines**, divergences or "none".
+- `PARITY_EXCEPTIONS.md`: every security-driven behavior change is a row (ID, C file:line, Sonar key, C vs Rust, test name). Each row has one `#[test]` in `{lib}-core/tests/exceptions.rs` that asserts Rust's safe result (and, if practical, that C still shows the old behavior).
 - `MIGRATION.md`: layout, `grep -rn "unsafe" --include=*.rs` (exclude `target/`), kept quirks vs intentional diffs.
 - Name out-of-scope APIs explicitly (silent skip is a bug).
 - `cargo test` and `cargo clippy -- -D warnings` must pass.
@@ -30,3 +33,5 @@ Full playbook: `.cursor/skills/port-c-library-to-rust/SKILL.md`.
 - Compare only "parses or not" or pretty JSON that is merely close.
 - Treat a green test run as proof without `PARITY.md`.
 - Invent a new public API that existing C callers cannot use through the original header.
+- "Fix" non-security quirks (lookup case folding, duplicate keys, print formatting, NaN/Inf, nesting limits).
+- Skip the SonarQube scan or allowlist a mismatch that is not a `PARITY_EXCEPTIONS.md` row with a test.
