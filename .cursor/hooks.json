@@ -3,8 +3,8 @@
   "hooks": {
     "beforeSubmitPrompt": [
       {
-        "command": "python3 .cursor/hooks/scan_prompt.py",
-        "timeout": 10,
+        "command": ".cursor/hooks/block-sensitive-prompt.sh",
+        "matcher": "UserPromptSubmit",
         "failClosed": true
       }
     ]
