@@ -1,0 +1,32 @@
+---
+description: C-to-Rust library port in progress — safe core crate, thin C ABI shim, match C quirks, prove with a C oracle.
+globs: "**/*.{rs,toml,c,h}"
+alwaysApply: false
+---
+
+# C-to-Rust port (copy into the target repo)
+
+Architectural invariants for a C library port. Enable `alwaysApply` only while the port is in progress. Do not keep this always-on after the port ships.
+
+Full playbook: `.cursor/skills/port-c-library-to-rust/SKILL.md`.
+
+## MUST
+
+- Cargo workspace: `{lib}-core` holds all logic with `#![forbid(unsafe_code)]`. `{lib}-ffi` is a thin C ABI shim (`#[repr(C)]`, original header symbols, `staticlib` + `cdylib`).
+- `{lib}-ffi` is the **only** crate that may contain `unsafe`. Every `unsafe` block has a `SAFETY:` comment.
+- Keep original `*.c` / `*.h` in-tree as the behavioral spec and oracle. Do not delete them once Rust compiles.
+- Match C **including quirks**. Do not "fix" lookup case folding, duplicate keys, print formatting, NaN/Inf, nesting limits, or error offsets.
+- Malformed input returns `Result` / `Error`. Library code must not panic on untrusted data.
+- Port the original test suite (Unity or equivalent). Same cases, not a replacement suite.
+- Differential harness vs original C: parse success/failure, exact error position on failure, byte-identical compact **and** pretty print. Exit nonzero on divergence.
+- `PARITY.md`: per-input table, documented quirks with **C source lines**, divergences or "none".
+- `MIGRATION.md`: layout, `grep -rn "unsafe" --include=*.rs` (exclude `target/`), kept quirks vs intentional diffs.
+- Name out-of-scope APIs explicitly (silent skip is a bug).
+- `cargo test` and `cargo clippy -- -D warnings` must pass.
+
+## MUST NOT
+
+- Put parse/print/tree logic in the FFI crate.
+- Compare only "parses or not" or pretty JSON that is merely close.
+- Treat a green test run as proof without `PARITY.md`.
+- Invent a new public API that existing C callers cannot use through the original header.
